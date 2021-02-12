@@ -44,6 +44,8 @@ def main():
         return version[1:].replace("-", "")
 
     for tag in tags.json():
+        if "rc" in tag["name"]:
+            continue
         version = fix_version_number(tag["name"])
         versions.append(version)
         commits[tag["commit"]["id"][0:11]] = version

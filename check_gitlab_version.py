@@ -22,13 +22,14 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import requests
-import sys
 import argparse
 import os
+import sys
+# TODO needs replacement, deprecated
+from distutils.version import LooseVersion  # pylint: disable=deprecated-module
 
-from distutils.version import LooseVersion
-from pprint import pprint as pp
+import requests
+
 
 gitlab_url = "https://gitlab.com/api/v4/projects/13083/repository/tags"
 
@@ -51,7 +52,7 @@ def main():
 
     args = parser.parse_args()
 
-    tags = requests.get(gitlab_url)
+    tags = requests.get(gitlab_url, timeout=30)
     if tags.status_code != 200:
         return return_plugin(
             3,
@@ -77,7 +78,7 @@ def main():
 
     premise_headers = {"PRIVATE-TOKEN": args.token}
 
-    check = requests.get("https://{0}/api/v4/version".format(args.host), headers=premise_headers)
+    check = requests.get("https://{0}/api/v4/version".format(args.host), headers=premise_headers, timeout=30)
     if check.status_code != 200:
         return return_plugin(
             3,
@@ -93,20 +94,10 @@ def main():
         current_version = versions.pop()
 
         if premise_version == current_version:
-            return return_plugin(
-                0,
-                "Version is <strong>UpToDate</strong> - premise={0}, gitlab={1}".format(
-                    premise_version, current_version
-                ),
-            )
-        else:
-            return return_plugin(
-                2,
-                "Version <strong>Mismatch</strong> - premise={0}, gitlab={1}".format(
-                    premise_version, current_version
-                ),
-            )
-    except (KeyError):
+            return return_plugin(0,"Version is <strong>UpToDate</strong> - premise={0}, gitlab={1}".format(premise_version, current_version),)
+
+        return return_plugin(2, "Version <strong>Mismatch</strong> - premise={0}, gitlab={1}".format(premise_version, current_version),)
+    except KeyError:
         return return_plugin(3, "Error get version from data")
 
 

@@ -1,5 +1,17 @@
 # check_gitlab_version
 
+An Icinga check plugin for on premise GitLab version against tags.
+
+## Installation
+
+Python 3 is required, and you need the Python [requests](https://pypi.org/project/requests/) module.
+
+Please prefer installation via system packages like `python3-requests`.
+
+Alternatively you can install with pip:
+
+    pip3 install -r requirements.txt
+
 ## Usage
 
 ```

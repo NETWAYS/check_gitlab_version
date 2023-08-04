@@ -22,36 +22,46 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import requests
-import sys
 import argparse
-import os
+import sys
+# TODO needs replacement, deprecated
+from distutils.version import LooseVersion  # pylint: disable=deprecated-module
 
-from distutils.version import LooseVersion
-from pprint import pprint as pp
+import requests
+
+__version__ = '0.1.0'
 
 gitlab_url = "https://gitlab.com/api/v4/projects/13083/repository/tags"
 
-states = ["OK", "WARNING", "CRITICAL", "UNKNOWN"]
 
 
-def return_plugin(status, msg):
-    print("Version: {0} - {1}".format(states[status], msg))
-    return status
+def commandline(args):
 
+    parser = argparse.ArgumentParser(prog="check_gitlab_version.py")
 
-def main():
-    scriptname = os.path.basename(sys.argv[0])
-    parser = argparse.ArgumentParser(prog=scriptname)
-
+    parser.add_argument('-V', '--version', action='version', version=__version__)
     parser.add_argument('-H', '--host', type=str, required=True,
                     help='GitLab Hostname (Premise)')
     parser.add_argument('-t', '--token', type=str, required=True,
                     help='GitLab Token (Premise)')
 
-    args = parser.parse_args()
+    return parser.parse_args(args)
 
-    tags = requests.get(gitlab_url)
+
+def return_plugin(status, msg):
+    states = {
+        0: "OK",
+        1: "WARNING",
+        2: "CRITICAL",
+        3: "UNKNOWN"
+    }
+
+    print("Version: {0} - {1}".format(states[status], msg))
+    return status
+
+
+def main(args):
+    tags = requests.get(gitlab_url, timeout=30)
     if tags.status_code != 200:
         return return_plugin(
             3,
@@ -77,7 +87,7 @@ def main():
 
     premise_headers = {"PRIVATE-TOKEN": args.token}
 
-    check = requests.get("https://{0}/api/v4/version".format(args.host), headers=premise_headers)
+    check = requests.get("https://{0}/api/v4/version".format(args.host), headers=premise_headers, timeout=30)
     if check.status_code != 200:
         return return_plugin(
             3,
@@ -93,22 +103,18 @@ def main():
         current_version = versions.pop()
 
         if premise_version == current_version:
-            return return_plugin(
-                0,
-                "Version is <strong>UpToDate</strong> - premise={0}, gitlab={1}".format(
-                    premise_version, current_version
-                ),
-            )
-        else:
-            return return_plugin(
-                2,
-                "Version <strong>Mismatch</strong> - premise={0}, gitlab={1}".format(
-                    premise_version, current_version
-                ),
-            )
-    except (KeyError):
+            return return_plugin(0,"Version is <strong>UpToDate</strong> - premise={0}, gitlab={1}".format(premise_version, current_version),)
+
+        return return_plugin(2, "Version <strong>Mismatch</strong> - premise={0}, gitlab={1}".format(premise_version, current_version),)
+    except KeyError:
         return return_plugin(3, "Error get version from data")
 
 
-if __name__ == "__main__":
-    sys.exit(main())
+if __package__ == '__main__' or __package__ is None: # pragma: no cover
+    try:
+        ARGS = commandline(sys.argv[1:])
+        sys.exit(main(ARGS))
+    except Exception: # pylint: disable=broad-except
+        exception = sys.exc_info()
+        print("[UNKNOWN] Unexpected Python error: %s %s" % (exception[0], exception[1]))
+        sys.exit(3)

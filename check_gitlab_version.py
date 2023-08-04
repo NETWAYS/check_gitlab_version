@@ -29,7 +29,7 @@ from distutils.version import LooseVersion  # pylint: disable=deprecated-module
 
 import requests
 
-__version__ = '1.0.0'
+__version__ = '0.1.0'
 
 gitlab_url = "https://gitlab.com/api/v4/projects/13083/repository/tags"
 

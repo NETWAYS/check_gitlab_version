@@ -33,7 +33,6 @@ __version__ = '1.0.0'
 
 gitlab_url = "https://gitlab.com/api/v4/projects/13083/repository/tags"
 
-states = ["OK", "WARNING", "CRITICAL", "UNKNOWN"]
 
 
 def commandline(args):
@@ -50,6 +49,13 @@ def commandline(args):
 
 
 def return_plugin(status, msg):
+    states = {
+        0: "OK",
+        1: "WARNING",
+        2: "CRITICAL",
+        3: "UNKNOWN"
+    }
+
     print("Version: {0} - {1}".format(states[status], msg))
     return status
 

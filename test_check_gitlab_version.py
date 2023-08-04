@@ -16,3 +16,12 @@ class CLITesting(unittest.TestCase):
         actual = commandline(['-H', 'localhost', '--token', 'foobar'])
         self.assertEqual(actual.host, 'localhost')
         self.assertEqual(actual.token, 'foobar')
+
+class UtilTesting(unittest.TestCase):
+
+    @mock.patch('builtins.print')
+    def test_return_plugin(self, mock_print):
+        actual = return_plugin(1, 'foobar')
+        self.assertEqual(actual, 1)
+
+        mock_print.assert_called_with('Version: WARNING - foobar')

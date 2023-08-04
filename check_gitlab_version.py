@@ -23,17 +23,30 @@
 # SOFTWARE.
 
 import argparse
-import os
 import sys
 # TODO needs replacement, deprecated
 from distutils.version import LooseVersion  # pylint: disable=deprecated-module
 
 import requests
 
+__version__ = '1.0.0'
 
 gitlab_url = "https://gitlab.com/api/v4/projects/13083/repository/tags"
 
 states = ["OK", "WARNING", "CRITICAL", "UNKNOWN"]
+
+
+def commandline(args):
+
+    parser = argparse.ArgumentParser(prog="check_gitlab_version.py")
+
+    parser.add_argument('-V', '--version', action='version', version=__version__)
+    parser.add_argument('-H', '--host', type=str, required=True,
+                    help='GitLab Hostname (Premise)')
+    parser.add_argument('-t', '--token', type=str, required=True,
+                    help='GitLab Token (Premise)')
+
+    return parser.parse_args(args)
 
 
 def return_plugin(status, msg):
@@ -41,17 +54,7 @@ def return_plugin(status, msg):
     return status
 
 
-def main():
-    scriptname = os.path.basename(sys.argv[0])
-    parser = argparse.ArgumentParser(prog=scriptname)
-
-    parser.add_argument('-H', '--host', type=str, required=True,
-                    help='GitLab Hostname (Premise)')
-    parser.add_argument('-t', '--token', type=str, required=True,
-                    help='GitLab Token (Premise)')
-
-    args = parser.parse_args()
-
+def main(args):
     tags = requests.get(gitlab_url, timeout=30)
     if tags.status_code != 200:
         return return_plugin(
@@ -101,5 +104,11 @@ def main():
         return return_plugin(3, "Error get version from data")
 
 
-if __name__ == "__main__":
-    sys.exit(main())
+if __package__ == '__main__' or __package__ is None: # pragma: no cover
+    try:
+        ARGS = commandline(sys.argv[1:])
+        sys.exit(main(ARGS))
+    except Exception: # pylint: disable=broad-except
+        exception = sys.exc_info()
+        print("[UNKNOWN] Unexpected Python error: %s %s" % (exception[0], exception[1]))
+        sys.exit(3)

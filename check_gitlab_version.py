@@ -24,6 +24,7 @@
 
 import argparse
 import sys
+import os
 # TODO needs replacement, deprecated
 from distutils.version import LooseVersion  # pylint: disable=deprecated-module
 
@@ -31,9 +32,7 @@ import requests
 
 __version__ = '0.1.0'
 
-gitlab_url = "https://gitlab.com/api/v4/projects/13083/repository/tags"
-
-
+GITLAB_URL = os.getenv("CHECK_GITLAB_VERSION_URL", default="https://gitlab.com/api/v4/projects/13083/repository/tags")
 
 def commandline(args):
 
@@ -61,7 +60,8 @@ def return_plugin(status, msg):
 
 
 def main(args):
-    tags = requests.get(gitlab_url, timeout=30)
+    tags = requests.get(GITLAB_URL, timeout=30)
+
     if tags.status_code != 200:
         return return_plugin(
             3,

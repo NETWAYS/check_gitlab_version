@@ -10,6 +10,7 @@ sys.path.append('..')
 
 from check_gitlab_version import return_plugin
 from check_gitlab_version import commandline
+from check_gitlab_version import semver
 from check_gitlab_version import main
 
 
@@ -37,6 +38,25 @@ class UtilTesting(unittest.TestCase):
 
         mock_print.assert_called_with('Version: WARNING - foobar')
 
+    def test_semver_sort(self):
+
+        versions = ['v16.2.4', 'v16.1.4', 'v16.2.3', 'v16.2.2', 'v16.0.8', 'v16.1.3', 'v15.11.13', 'v16.2.1', 'v16.2.0', 'v15.11.12', 'v15.11.11', 'v16.0.7', 'v16.1.2', 'v15.11.10', 'v16.0.6', 'v16.1.1']
+
+        expected = ['v15.11.10', 'v15.11.11', 'v15.11.12', 'v15.11.13', 'v16.0.6', 'v16.0.7', 'v16.0.8', 'v16.1.1', 'v16.1.2', 'v16.1.3', 'v16.1.4', 'v16.2.0', 'v16.2.1', 'v16.2.2', 'v16.2.3', 'v16.2.4']
+
+        actual = sorted(versions, key=semver)
+
+        self.assertEqual(actual, expected)
+
+        versions = ['v16.2.4', 'v15.11.10', 'v16.0', 'v16.1.1']
+
+        expected = ['v15.11.10', 'v16.0', 'v16.1.1', 'v16.2.4']
+
+        actual = sorted(versions, key=semver)
+
+        self.assertEqual(actual, expected)
+
+
 class MainTesting(unittest.TestCase):
 
     @mock.patch('requests.get')
@@ -62,7 +82,7 @@ class MainTesting(unittest.TestCase):
         def side_effect(url, headers={}, timeout=30):
             values = {
                 'https://gitlab.com/api/v4/projects/13083/repository/tags':
-                MockRequest(200, '[{"name": "v16.2", "commit": {"id": "dfa9a102b1b08b9a102b1b08b"}}, {"name": "v16.1", "commit": {"id": "9a102b1b08b9a102b1b08b"}}]'),
+                MockRequest(200, '[{"name": "v16.2.0", "commit": {"id": "dfa9a102b1b08b9a102b1b08b"}}, {"name": "v16.1.0", "commit": {"id": "9a102b1b08b9a102b1b08b"}}]'),
                 'https://localhost/api/v4/version':
                 MockRequest(400, '')
             }
@@ -81,9 +101,9 @@ class MainTesting(unittest.TestCase):
         def side_effect(url, headers={}, timeout=30):
             values = {
                 'https://gitlab.com/api/v4/projects/13083/repository/tags':
-                MockRequest(200, '[{"name": "v16.2", "commit": {"id": "9a102b1b08b9a102b1b08b"}}, {"name": "v666-rc", "commit": {"id": "foobar9a102b1b08b"}}]'),
+                MockRequest(200, '[{"name": "v16.2.1", "commit": {"id": "9a102b1b08b9a102b1b08b"}}, {"name": "v666.2.0-rc", "commit": {"id": "foobar9a102b1b08b"}}, {"name": "v15.3.0", "commit": {"id": "bar9a102b1b08b"}}]'),
                 'https://localhost/api/v4/version':
-                MockRequest(200, '{"version":"16.2","revision":"9a102b1b08b"}')
+                MockRequest(200, '{"version":"v16.2.1","revision":"9a102b1b08b"}')
             }
             return values[url]
 
@@ -100,9 +120,9 @@ class MainTesting(unittest.TestCase):
         def side_effect(url, headers={}, timeout=30):
             values = {
                 'https://gitlab.com/api/v4/projects/13083/repository/tags':
-                MockRequest(200, '[{"name": "v16.2", "commit": {"id": "dfa9a102b1b08b9a102b1b08b"}}, {"name": "v16.1", "commit": {"id": "9a102b1b08b9a102b1b08b"}}]'),
+                MockRequest(200, '[{"name": "v16.2.1", "commit": {"id": "dfa9a102b1b08b9a102b1b08b"}}, {"name": "v16.1.0", "commit": {"id": "9a102b1b08b9a102b1b08b"}}]'),
                 'https://localhost/api/v4/version':
-                MockRequest(200, '{"version":"16.1","revision":"9a102b1b08b"}')
+                MockRequest(200, '{"version":"16.1.3","revision":"9a102b1b08b"}')
             }
             return values[url]
 
@@ -119,9 +139,9 @@ class MainTesting(unittest.TestCase):
         def side_effect(url, headers={}, timeout=30):
             values = {
                 'https://gitlab.com/api/v4/projects/13083/repository/tags':
-                MockRequest(200, '[{"name": "v16.2", "commit": {"id": "foobar"}}]'),
+                MockRequest(200, '[{"name": "v16.2.1", "commit": {"id": "foobar"}}]'),
                 'https://localhost/api/v4/version':
-                MockRequest(200, '{"version":"16.2","revision":"9a102b1b08b"}')
+                MockRequest(200, '{"version":"16.2.2","revision":"9a102b1b08b"}')
             }
             return values[url]
 

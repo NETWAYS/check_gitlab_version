@@ -36,7 +36,7 @@ class UtilTesting(unittest.TestCase):
         actual = return_plugin(1, 'foobar')
         self.assertEqual(actual, 1)
 
-        mock_print.assert_called_with('Version: WARNING - foobar')
+        mock_print.assert_called_with('[WARNING] GitLab Version Status - foobar')
 
     def test_semver_sort(self):
 

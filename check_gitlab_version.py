@@ -66,7 +66,7 @@ def return_plugin(status, msg):
         3: "UNKNOWN"
     }
 
-    print("Version: {0} - {1}".format(states[status], msg))
+    print("[{0}] GitLab Version Status - {1}".format(states[status], msg))
     return status
 
 

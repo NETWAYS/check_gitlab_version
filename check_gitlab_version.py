@@ -25,14 +25,25 @@
 import argparse
 import sys
 import os
-# TODO needs replacement, deprecated
-from distutils.version import LooseVersion  # pylint: disable=deprecated-module
 
 import requests
 
 __version__ = '0.1.0'
 
 GITLAB_URL = os.getenv("CHECK_GITLAB_VERSION_URL", default="https://gitlab.com/api/v4/projects/13083/repository/tags")
+
+
+def semver(version):
+    # Normalize version string. v16.1.3 -> 16.1.3
+    version = version.lstrip("v").replace("-", "").split('.')
+    # In case we get a 16.0
+    if len(version) < 3:
+        version.append('0')
+
+    major, minor, patch = map(int, version)
+
+    return major, minor, patch
+
 
 def commandline(args):
 
@@ -73,17 +84,17 @@ def main(args):
     versions = []
     commits = {}
 
-    def fix_version_number(version):
-        return version[1:].replace("-", "")
-
     for tag in tags.json():
+        # Skip release candidates
         if "rc" in tag["name"]:
             continue
-        version = fix_version_number(tag["name"])
+
+        version = tag["name"]
         versions.append(version)
+
         commits[tag["commit"]["id"][0:11]] = version
 
-    versions.sort(key=LooseVersion)
+    versions.sort(key=semver)
 
     premise_headers = {"PRIVATE-TOKEN": args.token}
 

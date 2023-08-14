@@ -18,7 +18,7 @@ The check plugins uses the Git tags from gitlab.com to retrieve the current vers
 
 ```
 check_gitlab_version.py' '--host' 'git.netways.de' '--token' 'XXX-API-TOKEN-XXX'
-Version: OK - Version is <strong>UpToDate</strong> - premise=13.9.3, gitlab=13.9.3
+[OK] - GitLab Version Status - premise=13.9.3, gitlab=13.9.3
 ```
 
 ## License

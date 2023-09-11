@@ -38,6 +38,14 @@ class UtilTesting(unittest.TestCase):
 
         mock_print.assert_called_with('[WARNING] GitLab Version Status - foobar')
 
+    @mock.patch('builtins.print')
+    def test_return_plugin_with_invalid_code(self, mock_print):
+        actual = return_plugin(4, 'oh no!')
+        self.assertEqual(actual, 4)
+
+        mock_print.assert_called_with('[UNKNOWN] GitLab Version Status - oh no!')
+
+
     def test_semver_sort(self):
 
         versions = ['v16.2.4', 'v16.1.4', 'v16.2.3', 'v16.2.2', 'v16.0.8', 'v16.1.3', 'v15.11.13', 'v16.2.1', 'v16.2.0', 'v15.11.12', 'v15.11.11', 'v16.0.7', 'v16.1.2', 'v15.11.10', 'v16.0.6', 'v16.1.1']

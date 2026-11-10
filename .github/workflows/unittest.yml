@@ -21,10 +21,16 @@ jobs:
         make lint
 
   test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15"]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14", "3.15"]
+        os: [ubuntu-latest]
+        include:
+          # No Python 3.9 builds for newer Ubuntu releases
+          - python-version: "3.9"
+            os: ubuntu-24.04
     name: Test (Python ${{ matrix.python-version }})
     steps:
     - name: Checkout

@@ -37,19 +37,45 @@ Proxies are honored through the `https_proxy` and `no_proxy` environment variabl
 ## Access token
 
 The GitLab API returns the version only to authenticated users, so the plugin needs a token.
-Use the token with the least privileges:
+The plugin only calls `GET /api/v4/metadata`. Use a token that can do as little else as possible.
 
-* Create a dedicated user, for example `monitoring`, as a regular user, not as an administrator,
-  and without any group or project memberships.
-* Create a personal access token for this user with only the `read_user` scope.
+### Recommended: group or project access token with the `ai_features` scope
 
-This token can read the profile of the user and public user information, but no projects,
-groups or repositories.
+Create a group or project access token with the role `Guest` and only the `ai_features` scope.
+In the GitLab Community Edition, the REST API accepts this scope only for `/api/v4/metadata`
+and `/api/v4/version`. The token cannot read projects, groups, users or repositories, neither
+through the REST API nor through GraphQL or Git, and it is not bound to a person.
+Tested with GitLab 19.5 CE.
 
-Project and group access tokens are not recommended: they cannot have the `read_user` scope and need
-`read_api`, which grants read access to every project the token's bot user can see.
+If the web form does not offer the scope, create the token through the API. This needs the Owner
+role in the group:
 
-Personal access tokens expire. Monitor the expiry date, or renew the token in time.
+```
+curl --request POST \
+  --header "PRIVATE-TOKEN: <token of a group owner>" \
+  --header "Content-Type: application/json" \
+  --data '{"name": "check-gitlab-version", "scopes": ["ai_features"], "access_level": 10, "expires_at": "<YYYY-MM-DD>"}' \
+  "https://gitlab.example.com/api/v4/groups/<group ID>/access_tokens"
+```
+
+In the Enterprise Edition (Premium, Ultimate), the `ai_features` scope also grants access to the
+GitLab Duo API. If that is not acceptable, use a personal access token with the `read_user` scope.
+
+### Alternative: personal access token with the `read_user` scope
+
+Create a regular user, not an administrator and without any group or project memberships, and a
+personal access token for this user with only the `read_user` scope. The token can read user
+profiles, but no projects, groups or repositories. Group and project access tokens cannot have
+this scope.
+
+### Avoid the `read_api` and `api` scopes
+
+Both grant read access to every internal project of the instance, even for a bot user with the
+role `Guest` in an empty project.
+
+### Expiry
+
+Access tokens expire. Monitor the expiry date, or renew the token in time.
 
 ## Usage
 
@@ -63,8 +89,8 @@ options:
   -V, --version         show program's version number and exit
   -H, --host HOST       GitLab host name (uses https://<host>) or base URL,
                         e.g. https://example.com/gitlab
-  -t, --token TOKEN     GitLab personal access token with the read_user scope
-                        (default: $CHECK_GITLAB_VERSION_TOKEN)
+  -t, --token TOKEN     GitLab access token with the ai_features or read_user
+                        scope (default: $CHECK_GITLAB_VERSION_TOKEN)
   --version-check-url VERSION_CHECK_URL
                         URL of the GitLab version check service (default:
                         https://version.gitlab.com/check.json)
@@ -152,7 +178,8 @@ The Icinga Director does not support `env` on commands. There, pass the token wi
 * Enterprise Edition instances work. Before, they always ended as UNKNOWN.
 * The output format changed and no longer contains HTML.
 * The environment variable `CHECK_GITLAB_VERSION_URL` is replaced by `--version-check-url`.
-* The token can be passed in `CHECK_GITLAB_VERSION_TOKEN`, and `read_user` is enough as scope.
+* The token can be passed in `CHECK_GITLAB_VERSION_TOKEN`, and it needs only the `ai_features`
+  or `read_user` scope instead of `read_api`, see [Access token](#access-token).
 * The `requests` module is no longer needed.
 
 ## Development

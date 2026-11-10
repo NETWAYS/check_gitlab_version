@@ -132,7 +132,7 @@ def commandline(args: list[str]) -> argparse.Namespace:
     parser.add_argument("-H", "--host", required=True,
                         help="GitLab host name (uses https://<host>) or base URL, e.g. https://example.com/gitlab")
     parser.add_argument("-t", "--token", default=os.environ.get(TOKEN_ENV),
-                        help=f"GitLab personal access token with the read_user scope (default: ${TOKEN_ENV})")
+                        help=f"GitLab access token with the ai_features or read_user scope (default: ${TOKEN_ENV})")
     parser.add_argument("--version-check-url", default=DEFAULT_VERSION_CHECK_URL,
                         help="URL of the GitLab version check service (default: %(default)s)")
     parser.add_argument("--timeout", type=_positive_int, default=DEFAULT_TIMEOUT,
